@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    command: node api.js
+    ports:
+      - "3000:3000"
+    volumes:
+      - db-data:/app/data
+    environment:
+      - DB_PATH=/app/data/redirects.db
+    restart: unless-stopped
+
+  redirect:
+    build: .
+    command: node redirect.js
+    volumes:
+      - db-data:/app/data
+    environment:
+      - DB_PATH=/app/data/redirects.db
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - redirect
+    restart: unless-stopped
+
+volumes:
+  db-data:
